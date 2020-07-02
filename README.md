@@ -1,2 +1,0 @@
-# SQL COmplete
-SQl Classis
