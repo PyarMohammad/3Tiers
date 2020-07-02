@@ -1,0 +1,852 @@
+create database CompleteSql
+use CompleteSql
+
+create table Employee
+(
+empid int primary key identity,
+name varchar(50),
+gender varchar(50),
+salary int,
+dob date
+)
+
+insert into Employee(name,gender,salary,dob)values('Shankar','Male',400,'07-17-1997')
+insert into employee(name,gender,salary,dob)values('Drishya','Female',1000,'08-30-1997')
+insert into employee(name,gender,salary,dob)values('Pooja','Female',800,'10-15-1996')
+insert into employee(name,gender,salary,dob)values('Priya','Female',500,'08-30-1997')
+insert into employee(name,gender,salary,dob)values('Abc','Others',1000,'08-30-1957')
+
+select*from Employee
+
+--how to add and drop a column from any table-----
+
+alter table Employee add email varchar(50)
+alter table Employee drop column email 
+
+-----------how to rename database-----------------
+
+sp_renamedb 'current_db_name','new_db_name'
+
+--example--
+sp_renamedb 'db22012020','db22jan'
+
+---------how to rename table---------------------
+
+sp_rename 'current_table_name','new_table_name'
+
+--example--
+sp_rename 'employee','emp'
+sp_rename 'emp','employee'
+
+------how to remanem column name of table--------
+
+sp_rename 'current_column_name','new_column_name'
+
+--example--
+sp_rename 'employee.salary','vetan'
+sp_rename 'employee.vetan','salary'
+
+---------how to find procedure code---------------------
+
+sp_helptext'usp_Employee_salary'
+
+--how change column name type like vachar to int and int to varchar--
+
+alter table Employee alter column salary varchar(50)
+
+alter table Employee alter column salary int
+
+--how to run select query--
+
+select*from Employee
+
+select*from .dbo.Employee
+
+--how tranfer data from one table to another table--
+
+create table Employee1
+(
+empid int primary key identity,
+name varchar(50),
+gender varchar(50),
+salary int,
+dob date
+)
+insert into Employee1(name,salary,gender,dob)select name,salary,gender,dob from Employee
+
+select*from Employee1
+
+--how to create diffrent table without any table query and insert data from another table--
+ 
+select * into Employee2 from Employee 
+select * from Employee2
+
+--how to update any column data--
+
+select*from Employee update Employee set name=gender, gender=name where empid>3
+
+select*from Employee update Employee set gender=name,name=gender where empid>5
+
+select*from Employee
+
+--how to change gender like where  male thrir female and where female there male else others--
+
+update Employee set gender=
+case
+when gender='male' then 'female'
+when gender='female' then 'male'
+end
+
+update Employee set gender=
+case
+when gender='male' then 'female'
+when gender='female' then 'male'
+else gender
+end
+
+select*from Employee
+
+--how get ASCII value--
+
+select ASCII('A') --answer is 65--
+select CHAR('66')  --answer is B--
+
+--how to print capital latter A to Z(LOOP CHALANA)--
+
+declare @start int
+set @start=65
+while(@start<91)
+  begin
+    print char(@start)
+	set @start=@start+1
+  end
+
+--how to print small latter a to z(LOOP CHALANA)--
+
+declare @start1 int
+set @start1=97
+while(@start1<123)
+  begin
+    print char(@start1)
+	set @start1=@start1+1
+  end
+
+-----------------------------------------------------------------------------------
+
+select*,name from Employee  
+
+---if we want to get muptile time or two time any column value then we have to use this query---
+
+--Anual salary---
+
+select name,salary,(salary*12)as anual_salary from Employee 
+
+select name,salary,(salary*12) [anual_salary] from Employee
+
+--if we want show name and gender in capital latter then we have to use this query--
+
+select*,UPPER(name)as name,UPPER(gender)as gender from Employee
+
+-------------Single procedure banana-----------------------------------------
+
+alter proc usp_Employee_salary 
+@id int
+as
+begin
+select salary from Employee 
+end
+
+usp_employee_salary 3  ---procedure check karne ke liye---
+-------------------------------------------------------
+
+--procedure non integer value return nahi karta integer value return karta hain--
+
+create proc usp_employee_salary1 
+@id int
+as
+begin
+declare @sl int
+select @sl=salary from employee where empid=@id
+return @sl
+end
+
+declare @k int
+exec @k=usp_employee_salary1 2
+print @k
+
+---how to get non integer value from store processor with use of output or out keyword----
+
+create proc usp_employee_name
+@id int,
+@name varchar(50) output
+as
+begin
+select @name=name from employee where empid=@id
+end
+
+declare @nm varchar(50)
+exec usp_employee_name 5,@nm output
+print @nm
+
+----------------------that all are pre defind function-------------------
+
+select getdate()-----it is use for get current date with time--
+
+select datepart(day,getdate())  ----it is use get current date--
+
+select datepart(year,getdate())  ----it is use get current year--
+
+select datename(dw,getdate())  ----it is use get current day name--
+
+select datename(dw,'07-19-1997')  ----it is use get given date day name--
+
+select datename(mm,getdate())  ----it is use get current month name--
+
+select dateadd(day,5,getdate())  ----it is use get next date that value is given --
+
+select dateadd(day,-5,getdate())  ----it is use get privious date that value is given --
+
+select dateadd(month,5,getdate())  ----it is use get next month that value is given --
+
+select dateadd(day,-5,getdate())  ----it is use get privious month that value is given --
+
+select datediff(year,'07-17-1997',getdate()) ---it is use get diff between years given date from current date--
+
+select datediff(MINUTE,'07-17-1997',getdate()) ---it is use get diff between MINUTE given date from current date--
+
+---------------------------------function-------------------------------------
+
+-----------1.scalare function(jab koi function single value return karta hain)-----------------
+
+create function fn_employee_age(@dob date)
+returns int
+as
+begin
+declare @age int
+select @age=datediff(year,@dob,GETDATE())
+return @age
+end
+
+select dbo.fn_employee_age('07-17-1997')Age --it is use check or call function--
+
+-----2.table valued function(jab koi function table return karta hain)---
+
+--a. inline table valued function--
+
+create function fn_table_get(@gnd int)
+returns table
+as
+return(select*from employee where gender=@gnd)
+
+
+select*from dbo.fn_table_get(1)   --it provide table data according gender in form of table---
+
+
+---2.multi statement table valued function--
+
+create function fn_table_get1()
+returns @tbl table(empid int,name varchar(50),dob date)
+as
+begin
+    insert into @tbl
+	select  empid,name,cast(dob as date) from employee
+	return
+end
+
+select*from dbo.fn_table_get1()
+
+select*from employee
+
+------------------------storeproc in call function ko------
+
+create proc abc
+as
+begin
+select*,dbo.fn_employee_age(dob)Age from employee
+end
+
+select*,dbo.fn_employee_age(dob)Age from employee  --it is for add a column from function--
+
+-------------------------------------------------------
+
+update employee set gender=
+case
+when gender='male' then '1'
+when gender='female' then '2'
+else '3'
+end
+
+select*from employee
+
+ --------------------------------------------------
+
+ create table country
+ (
+ cid int primary key identity,
+ cname varchar(50)
+ )
+
+ insert into country(cname)values('India'),('Sri Lanka'),('USA'),('UAE')
+
+ select*from country
+
+ --------------CONSTRAINTS--------------------------
+
+ -------------primary key----------
+ -------how to create primary key in a table on single column--
+
+ create table tbl
+ (
+ tid int primary key identity,
+ tname varchar(50)
+ )
+
+ -------how to create primary key in a table on multiple column--
+
+ create table tbl
+ (
+ tid int,
+ tname varchar(50),
+ tage int,
+ primary key(tid,tname,tage)
+ )
+
+ ----when we are use same key on multiple feilds in a table when it is called composit key but it is not a kay or constraint it is only for call--- 
+
+ ---------unique key------------------
+
+ create table tbl
+ (
+ tid int not null,
+ tname varchar(50) unique
+ )
+
+ -------how to create unique key in a table on multiple column--
+
+ create  table tbl
+ (
+ tid int,
+ tname varchar(50),
+ tage int,
+ unique(tid,tname,tage)
+ )
+
+ ------------foreign key--------
+
+ create table tbl
+ (
+ tid int primary key identity,
+ tname varchar(50),
+ tage int,
+ ctr int foreign key references country(cid)
+ )
+
+ --diff syntex for create foreign key after create a table--
+
+ select*from  tbl add ctr int foreign key references country(cid)
+
+ insert into tbl (tname,tage,ctr,)values('aa',22,1)
+
+ select*from tbl
+
+
+ alter table employee add ctr int --how to add a column in table--
+
+ -------how to insert value in multiple column-- 
+
+ update employee set ctr=1 where empid in(1,2)
+ update employee set ctr=2 where empid in(3,4)
+ update employee set ctr=3 where empid in(5,6)
+ update employee set ctr=4 where empid in(7,8)
+
+ --------------------Join---------------------------------------------------
+
+ ---------------inner join--------------------
+
+ select*from employee inner join country on employee.ctr=country.cid   ---inner word is npt compalsory--
+
+ select*from employee join country on employee.ctr=country.cid
+
+ ----------------------------------------------------------------------
+
+insert into employee(name,gender,salary,dob)values('sandeep',1,500,'07-16-1997')
+insert into country(cname)values('England')
+
+ ---------------------outer join----------------------
+
+ ----------------------left outer join/left join-------------
+
+ select*from employee left outer join country on employee.ctr=country.cid  ---outer word is npt compalsory--
+
+  select*from employee left join country on employee.ctr=country.cid
+
+  --let join is use for that record is not match from second tale that is show though left join--
+
+  ----------------------right outer join/left join-------------
+
+ select*from employee right outer join country on employee.ctr=country.cid  ---outer word is npt compalsory--
+
+  select*from employee right join country on employee.ctr=country.cid
+
+  --let join is use for that record is not match from first tale that is show though left join--
+
+  ----------------------full outer join/left join-------------
+
+ select*from employee full outer join country on employee.ctr=country.cid  ---outer word is npt compalsory--
+
+  select*from employee full join country on employee.ctr=country.cid
+
+  --let join is use for that record is not match from both tale that is show though left join--
+
+  ----------------------cross join-------------
+
+ select*from employee cross join country 
+ 
+ --we get result from cross join secon table and fist table ke multiply karke har record second table se match hokar aata hai--
+
+ ------------------how get that record have null value -----  
+
+ select*from employee left join country on employee.ctr=country.cid where cid is null
+
+ select*from employee right join country on employee.ctr=country.cid where empid is null
+
+  ---------------self join---------------
+
+  create table users
+  (
+  uid int primary key identity,
+  uname varchar(50),
+  manager int
+  )
+
+  insert into users(uname,manager)values('Shankar',2),('Drishya',1),('Pooja',5),('Sanjeev',4),('Pyar Mohammad',3)
+  select*from users
+  --this query is use for self join--
+  select u2.uname as Employee,u1.uname as Manager
+  from users as u1 inner join users as u2 on u1.uid=u2.manager
+
+  -----------------------------------------------------------
+
+  select *from employee where empid=3   --this query is use for get data of particular id--
+
+ select *from employee where empid=3 or empid=5  
+
+ ---in or condition if any one condition is true when we are get only tru condition data though this query--
+ --so, or is a keyboard--
+
+ ---------------------------------------------------
+
+ select *from employee where empid=3 or name='akash' 
+ --now and is also a agreegate function so it is check all condition if any codition is false we can't get result so in and condition all condition will be true--
+
+ ---------------------------------------
+
+  select *from employee where empid in(1,2)
+   -- when we want to get two or more result through this query then we have to use(in) condition--
+
+ -------------------------------------------------
+
+ --use of between---
+    select *from employee where empid between 1 and 5
+
+ --between will give result with that values include with all data of there paricular id--
+
+ ----------------------------------------------------------
+
+  select *from employee where empid<6
+
+  select *from employee where empid>4
+
+  select *from employee where empid>=3
+
+  -----------------------------------------------------
+
+  --use of order by--
+
+   select *from employee order by name --this query will give result according to name means alphabatical order--
+   ---we will get result by default in acendig from--
+
+ select *from employee order by name desc
+
+ select *from employee order by salary desc
+
+ ------------------------------------------------------------------------------
+
+ select gender from employee
+
+select distinct gender from employee  --it is use for know how many gender in table ---
+
+select distinct salary from employee  --it is use for know how many salary in table ---
+---distinct ka use ek value ek baar paane ke liye use karte hai--
+
+---------------------------------------------------------------------------------
+
+select top(2)*from employee  ---it is use for know top two record from table--
+
+
+select top(2)*from employee order by empid desc  ---it is use for know last two heighest salary of employee--
+
+-----------------------------------------------------------------------------
+
+---------------------use of agreegate function------------------------
+
+select max(salary) from employee  ---it use for know highest salary----
+
+select min(salary) from employee  ---it use for know minimum salary----
+
+select avg(salary) from employee  ---it use for know average salary----
+
+select count(salary) from employee  ---it use for know count salary that how many salary in table----no null count--
+
+select max(name) from employee  ---it is use for know that name is start from last alphabate ----
+
+select min(name) from employee  ---it is use for know that name is start from first alphabate ----
+
+---------------------------------------------------------------------------------------------------
+
+--------how to know person name who is gat max salary-----
+select name from employee where salary=(select max(salary)from employee)
+
+--------------------------------------------------------------------------------------------
+
+------how to know person name who will get blow than average salary--
+
+select name from employee where salary<(select avg(salary) from employee)
+
+--------------------------------------------------------------------------------------------
+
+---------how to know person name who is get salary between main and max salary----
+
+select name from employee where salary>(select min(salary) from employee) and salary<(select max(salary) from employee)
+
+select name from employee where salary between(select min(salary) from employee)+1 and(select max(salary) from employee)-1
+
+--------dono query se same result milega---
+
+------------------------------------------------------------------------------------------------------------------
+
+--------------how to know third highest salary---------------
+select min(salary) from
+(select top(3)salary from employee order by salary desc)A
+
+--------------how to know third lowest salary---------------
+select max(salary) from
+(select top(3)salary from employee order by salary )A
+
+------------how get third highest salary whithout using any agreegate function-------------------------------
+
+select top(1) salary from 
+(select top(3)salary from employee order by salary desc)A order by salary 
+--ya--
+select top(1) salary from 
+(select top(3)salary from employee order by salary desc)A order by salary asc
+
+---------how to  know person name who is get third lowest salary--
+
+select name from employee where salary=(select max(salary) from
+(select top(3)salary from employee order by salary )A)
+
+---------Pre Defined Function-----------------
+
+select upper(name)uname from employee   --it is use for show name in capital latter--
+
+select lower(name)uname from employee  --it is use for show name in small latter--
+
+select REPLACE('shankar kumar','mar','kutai') ---it is use for replace carrecter--
+
+select STUFF(9650360813,1,6,'******')M_No  ---------it is use hide the no---
+
+select replicate('JAI HANUMAN, ',500)  ----it is use repete same word many time--
+
+select left (name,3)name from employee  ---it is ue for hide some character ----
+
+---Transaction------
+
+create table item
+(
+itemid int primary key identity,
+iname varchar(50),
+price int,
+qty int
+)
+
+insert into item(iname,price,qty)values('Mobile',20000,70),('LED',25000,60),('Charger',500,100)
+
+select*from item
+
+create table solditem
+(
+sid int primary key identity,
+itemid int,
+qty int
+)
+
+insert into solditem(itemid,qty)values(2,20),(1,10),(1,10),(2,20)
+
+select*from solditem
+
+create proc usp_trnsaction
+@iid int,
+@qt int
+as
+begin
+    begin try
+	insert into solditem(itemid,qty)values(@iid,@qt)
+	update item set qty=qty-@qt where itemid=@iid
+	commit transaction
+	PRINT 'TRANSACTION SUCESSFULL'
+	end try
+
+	begin catch
+	rollback transaction
+	PRINT 'TRANSACTION FAILED'
+	end catch
+end
+
+-------------TEMPRORY TABLE---------------------------
+
+-------------LOCAL TEMPRORY TABLE-----------
+
+create table #student
+(
+stid int primary key identity,
+name varchar(50),
+age int
+) 
+
+insert into #student(name,age)values('shankar',22),('sandeep',21),('sanjeev',25),('Pyar mohammad',23)
+
+select*from #student
+
+
+--it is use for only for sigle user and it run when we are use sql otherwise it will destroy or no run--
+
+--------------GLOBAL TABLE-----
+
+create table ##student1
+(
+stid int primary key identity,
+name varchar(50),
+age int
+) 
+
+insert into ##student1(name,age)values('shankar',22),('sandeep',21),('sanjeev',25),('Pyar mohammad',23)
+
+select*from ##student1
+
+---it is use for multi user and it like as local temprory table----
+
+------Trigger------------
+
+--for trigger--
+
+create trigger trg
+on country for insert 
+as
+begin
+select*from employee
+end
+
+insert into country(cname)values('South Africa')
+
+select* from country
+
+--in the for trigger where we are use fire triger action when autometically fire user action------
+
+create trigger trg1
+on employee instead of insert 
+as
+begin
+select*from country
+end
+
+insert into employee(name,gender,salary,dob,ctr)values('jyoti',1,1000,'07-14-1997',5)
+
+select* from employee
+
+--in the instead trigger when are create when want that user action will not be work then we are craete instead of trigger--
+
+---DDL TRIGGER--
+
+create trigger trg on databse for 
+create_table,alter_table,drop_table
+as
+begin
+print'your table is created '
+end
+
+alter drop trigger trg2 on database for 
+drop_table
+as
+begin
+print 'your table is cerated !!!'
+end
+ 
+drop table employee4
+
+create trigger trg3 on database for 
+alter_table
+as
+begin
+print 'your table is cerated !!!'
+end
+
+alter table employee2 add name2 varchar(50)
+
+select*from employee2
+
+create trigger trg4 on database for 
+create_table
+as
+begin
+print 'your table is cerated !!!'
+end
+
+
+create table employee4
+(
+empid int primary key identity,
+name varchar(50),
+gender varchar(50),
+salary int,
+dob date
+)
+
+drop trigger trg4 on database
+
+create trigger trg5 on database for 
+create_table
+as
+begin
+rollback transaction
+print 'your table is not cerated !!!'
+end
+
+create table xyz 
+(
+id int primary key identity,
+name varchar(50)
+)
+
+--------------------------------------------------
+
+create trigger trg_logon
+on ALL SERVER
+for LOGON
+AS
+BEGIN
+    declare @LoginName varchar(100)
+	set @LoginName=ORIGINAL_LOGIN()
+	declare @atmp int
+	select @atmp=COUNT(*)from sys.dm_exec_sessions
+	where is_user_process=1 and
+	original_login_name=@LoginName
+	IF(@atmp>500)
+	BEGIN
+	PRINT '6th transaction is blocked!!'
+	ROLLBACK
+	END
+END
+
+--------------------------------VIEW-----------------------------------------
+
+create view vw 
+as 
+select*from country
+
+select*from vw
+
+create view viewjoin
+as
+select empid,name,salary,dob,cname from employee inner join country on employee.ctr=country.cid
+
+
+select*from viewjoin
+
+create trigger trg 
+on viewjoin instead of insert
+as
+begin
+  declare @p int
+  select @p=cid from country where
+  cname=(select cname from inserted)
+  if(@p is null)
+  begin
+  insert into country(cname)select cname from inserted
+  select @p=SCOPE_IDENTITY()
+  end
+  insert into employee(name,salary,dob,ctr)
+  select name,salary,dob,@p from inserted
+end
+
+insert into viewjoin(name,salary,dob,cname)values('pyar mohammad',1000,'01-01-1998','iran')
+
+select*from viewjoin
+
+select*from country
+
+------------------CURSOR---------------------------------
+
+declare crs scroll cursor for select*from employee
+open crs
+fetch first from crs
+fetch next from crs
+fetch last from crs
+fetch absolute 5 from crs
+fetch relative 2 from crs
+fetch relative -2 from crs
+close crs
+
+-----------------------GROUP BY-----------------------------------------------------------
+
+select gender,sum(salary)Total_salary from employee group by gender
+
+select ctr,sum(salary)Total_salary from employee group by ctr
+
+select ctr,count(name),sum(salary)Total_salary from employee group by ctr
+
+
+select cname, sum(salary)Total_salary from employee inner join country on employee.ctr=country.cid
+group by cname
+
+select gender,name,sum(salary)Total_salary from employee group by gender,name
+
+
+select gender,sum(salary)Total_salary from employee
+where salary>100
+group by gender
+having sum(salary)>1000
+
+----------------------------------------------UNION----------------------------------------------------------------
+
+select name from employee
+union
+select cname from country
+
+select name from employee
+union all
+select cname from country
+
+select name from employee
+intersect
+select cname from country
+
+select name from employee
+except
+select cname from country
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
