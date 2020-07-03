@@ -1,0 +1,57 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using System.Data.SqlClient;
+using System.Configuration;
+
+namespace DAL
+{
+    public class DataAccessLaye
+    {
+        SqlConnection con = new SqlConnection(ConfigurationSettings.AppSettings["DBCS"]);
+      
+        public void Insert(string sp, SqlParameter[] param)    //function 1(insert,delete,update)
+        {
+            con.Open();
+            SqlCommand cmd = new SqlCommand(sp, con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            for (int i = 0; i < param.Length; i++)
+            {
+                cmd.Parameters.Add(param[i]);
+            }
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+        public DataTable Get(string sp)                       //function 2(show karane ke liye)
+        {
+            con.Open();
+            SqlCommand cmd = new SqlCommand(sp, con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            con.Close();
+            return dt;
+        }
+
+        public DataTable GetParameter(string sp, SqlParameter[] param)   //function 3(edit, state)
+        {
+            con.Open();
+            SqlCommand cmd = new SqlCommand(sp, con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            for (int i = 0; i < param.Length; i++)
+            {
+                cmd.Parameters.Add(param[i]);
+            }
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            con.Close();
+            return dt;            
+        }
+    }
+}
