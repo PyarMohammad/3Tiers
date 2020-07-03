@@ -1,0 +1,64 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Data.SqlClient;
+using BAL;
+using System.Data;
+
+namespace jQy030320
+{
+    public partial class Employee : System.Web.UI.Page
+    {
+        BusinessLayerAccess obj = new BusinessLayerAccess();
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                BindGrid();
+             }
+
+        }
+        public void BindGrid()
+        {
+            DataTable dt2 = new DataTable(); 
+            dt2 = obj.Employee_Get();
+            grd.DataSource = dt2;
+            grd.DataBind();
+        }
+        protected void btnsave_Click(object sender, EventArgs e)
+        {
+            if (btnsave.Text == "SAVE")
+            {
+                obj.Employee_Insert(txtname.Text, txtaddress.Text, Convert.ToInt32(txtage.Text));
+                BindGrid();
+            }
+            else
+            {
+                obj.Employee_Update(txtname.Text, txtaddress.Text, Convert.ToInt32(txtage.Text), Convert.ToInt32(ViewState["global"]));
+                BindGrid();
+            }
+        }
+
+        protected void grd_RowCommand(object sender, GridViewCommandEventArgs e)
+        {
+            if (e.CommandName == "A")
+            {
+                obj.Employee_Delete(Convert.ToInt32(e.CommandArgument));
+                BindGrid();
+            }
+            else 
+            {
+                DataTable dt2 = new DataTable();
+                dt2 = obj.Employee_Edit(Convert.ToInt32(e.CommandArgument));
+                txtname.Text = dt2.Rows[0]["name"].ToString();
+                txtaddress.Text = dt2.Rows[0]["address"].ToString();
+                txtage.Text = dt2.Rows[0]["age"].ToString();
+                btnsave.Text = "UPDATE";
+                ViewState["global"] = e.CommandArgument;
+            }
+        }
+    }
+}

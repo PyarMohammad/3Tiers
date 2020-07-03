@@ -1,0 +1,57 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data.SqlClient;
+using DAL;
+using System.Data;
+
+namespace BAL
+{
+    public class BusinessLayerAccess
+    {
+        DataAccessLayer obj = new DataAccessLayer();
+        public void Employee_Insert(string A, string B, int C)
+        {
+            SqlParameter[] parm = { 
+                                   new SqlParameter("@name", A),
+                                   new SqlParameter("@address", B),
+                                   new SqlParameter("@age", C)
+                                  };
+            obj.Insert("usp_Emp_insert" , parm);
+        }
+        public DataTable Employee_Get()
+        {
+            DataTable dt1 = new DataTable();
+            dt1 = obj.Get("usp_Emp_get");
+            return dt1;
+        }
+        public void Employee_Delete(int A)
+        {
+            SqlParameter[] parm = { 
+                                   new SqlParameter("@id", A),
+                                  };
+            obj.Insert("usp_Emp_delete", parm);
+        }
+        public DataTable Employee_Edit(int A)
+        {
+            SqlParameter[] parm = { 
+                                   new SqlParameter("@id", A),
+                                  };
+            DataTable dt1 = new DataTable();
+            dt1 = obj.GetbyParameter("usp_Emp_edit", parm);
+            return dt1;
+        }
+        public void Employee_Update(string A, string B, int C, int I)
+        {
+            SqlParameter[] parm = { 
+                                   new SqlParameter("@name", A),
+                                   new SqlParameter("@address", B),
+                                   new SqlParameter("@age", C),
+                                   new SqlParameter("@id", I)
+                                  };
+            obj.Insert("usp_Emp_update", parm); //insert wale ko hi DAL main hain
+        }
+    }
+}
